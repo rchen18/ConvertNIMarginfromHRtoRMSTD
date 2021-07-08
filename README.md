@@ -94,7 +94,7 @@ rngHCWeibull <- function(
 
 ```
 
-## Piece-wise Exponential data generation function
+## Piece-wise Exponential (two-change-points) data generation function
 
 
 ``` r
@@ -368,6 +368,30 @@ KMcNIMarCov(samp.obs.weib, 1.5, 36)
 -1.002105
 ```
 The converted NI margin measured in RMSTD is approximately 1 month.
+
+Then generate a sample of 200 observaitons that follow from a two-change-points Piece-wise Exponential(theta_1=0.0025, r_1=1.3, r_2=0.7, t_1=18, t_2=36) distribution. The generated data are subject to a Type-I right censoring mechanism with a maximum follow-up time of 126 months. A random drop-out mechanism is applied that follows an exponential distribution with lambda=0.001.
+
+``` r
+set.seed(12345)
+samp.obs.exp <- rngHCpwExp_cpsurvsim(200, # sample size of the historical control group
+                              126, # maximum follow-up time for the historical control group
+                              c(0.0025,0.0025*1.3,0.0025*1.3*0.7), # a vector of rate parameters of the survival time distribution (exponential)
+                              c(18,36), # a vector of change of time points values for the control group
+                              0.001 # censoring rate parameter for the historical control group
+)
+head(samp.obs.exp)
+#############################
+        time status   true.eve true.cens
+1 126.000000      0 126.000000 126.00000
+2 126.000000      0 126.000000 126.00000
+3 126.000000      0 126.000000 126.00000
+4   7.379469      1   7.379469 126.00000
+5 126.000000      0 126.000000 126.00000
+6   9.575256      1   9.575256  30.71664
+```
+
+
+
 
 
 
