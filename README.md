@@ -174,6 +174,8 @@ KMcNIMarCov <- function(control.data, hr.margin, tau) {
 
 ## NI margin conversion function: individual study level assuming Weibull model
 
+This function requires the `survival` R package
+
 input arguments: 
 
 * control.data: the historical active control group individual patient data
@@ -202,7 +204,51 @@ weibullNIMarCov <- function(my.data, hr.margin, tau) {
 }
 ```
 
+## Variance estimator function of NI margin conversion function with KM estimators for multiple studies
 
+This function calculates with-in study variations for NI margin conversions using multiple studies
+
+``` r
+KMVarEst <- function(control.data, hr.margin, tau) {
+  #########################################
+  # fit a KM curve (this step is for obtaining survival data info)
+  KM.fit1 <- survfit(Surv(time, status) ~ 1, data=control.data)
+  # survival info data frame
+  KM.fit1.data <- data.frame(t.i = KM.fit1$time, # extract event time info
+                             S.i = KM.fit1$surv, # survival probabilities
+                             d.i = KM.fit1$n.event, # number of event at time t_i
+                             n.i = KM.fit1$n.risk # risk size at time t_i
+  )
+  # we don't exclude tau from our analysis
+  # leave out the cutoff point (tau)
+  KM.fit1.data <- KM.fit1.data[1:min(max(which(KM.fit1.data$t.i<=tau)),max(which(KM.fit1.data$S.i>0))),]
+  # the part inside the big brackets
+  var.est.part1 <- (hr.margin^2)*KM.fit1.data$S.i^(2*hr.margin) + (KM.fit1.data$S.i)^2 + 2*hr.margin^2*(KM.fit1.data$S.i)^(hr.margin+1)
+  # equation (11) the fraction
+  var.est.part2 <- numeric(nrow(KM.fit1.data))
+  for (i in 1:nrow(KM.fit1.data)) {
+    var.est.part2[i] <- sum(KM.fit1.data$d.i[1:i]/(KM.fit1.data$n.i[1:i]*(KM.fit1.data$n.i[1:i]-KM.fit1.data$d.i[1:i])))                 
+  }
+  # calculate time period length between each recorded time points
+  time.len.cont <- numeric(nrow(KM.fit1.data))
+  # first time period length is from t=0 to the first event time
+  time.len.cont[1] <- KM.fit1.data$t.i[1]
+  for (i in 2:length(KM.fit1.data$t.i)) {
+    time.len.cont[i] <- KM.fit1.data$t.i[i]-KM.fit1.data$t.i[i-1]
+  }
+  # check the time period length result
+  # if (sum(time.len.cont) != max(KM.fit1.data$t.i)) {
+  #   print("error! sum of all time periods' length should equal the maximum observed time")
+  #   break
+  # }
+  # equation (11) 
+  var.est.part3 <- time.len.cont^2
+  # var est final (var est up to time tau)
+  KMc.rmstd.var <- sum(var.est.part3*var.est.part2*var.est.part1)
+  return(KMc.rmstd.var)
+}
+
+```
 
 
 
