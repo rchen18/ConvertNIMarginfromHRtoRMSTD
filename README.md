@@ -250,6 +250,86 @@ KMVarEst <- function(control.data, hr.margin, tau) {
 
 ```
 
+## NI margin conversion function with KM estimators for multiple studies where the variance is estimated by bootstrap
+
+* K denotes the total number of historical active controlled studies used for NI margin conversion 
+* n.K is a vector of sample sizes of the K historical studies
+* data.K is the data set that contains all K historical studies where each observation has 
+* boot.size: how many bootstrap samples are used to calculate the variance
+* hr.margin: original NI margin measured in HR 
+* tau: up to which time point you want to evaluate the NI margin conversion
+
+``` r
+KMcMultiNIMarCovBoot <- function(data.K, K, n.K, hr.margin, tau, boot.size) {
+  # weight function container
+  KM.C.weights.boot <- numeric(K)
+  # est container
+  KM.C.est.temp <- numeric(K)
+  # estimate RMST using KM-C method for each study
+  for (i in 1:K) {
+    KM.C.est.temp[i] <- KMcNIMarCov(data.frame(data.K[which(data.K$study==i),]), hr.margin, tau)
+  }
+  # bootstrapped weighted functions
+  # define containers for bootstrapping
+  # dim 1 (row): boot est; dim 2 (column): study
+  est.boots.mat <- matrix(rep(0,boot.size*K),nrow=boot.size,ncol=K)
+  weights.boot <- numeric(K)
+  for (i in 1:K) {
+    data_K_i <- data.K[which(data.K$study==i),]
+    for (j in 1:boot.size) {
+      boot.index <- sample(1:nrow(data_K_i), prob=rep(1/nrow(data_K_i), nrow(data_K_i)), replace=T)
+      data_K_i_j.boot <- data_K_i[boot.index,]
+      est.boots.mat[j,i] <- KMcNIMarCov(data_K_i_j.boot, hr.margin, tau)
+    }
+    weights.boot[i] <- 1 / var(est.boots.mat[,i])
+  }
+  # weighted estimator of treatment effect
+  KM.C.delta.w.bar <- sum(KM.C.est.temp * weights.boot) / sum(weights.boot)
+  KM.C.pop.var.est <- max(0,(sum(weights.boot*(KM.C.est.temp-KM.C.delta.w.bar)^2)-(K-1))/(sum(weights.boot)-(sum(weights.boot^2)/sum(weights.boot))))                       
+  # the weight combining within and between study variations
+  KM.C.weights.boot.star <- 1/(KM.C.pop.var.est+1/weights.boot)
+  #######################
+  KM.C.est.RMSTD <- sum(KM.C.weights.boot.star * KM.C.est.temp)/sum(KM.C.weights.boot.star)
+  # print(KM.C.est.temp)
+  return(KM.C.est.RMSTD)
+}
+
+```
+
+## NI margin conversion function with KM estimators for multiple studies where the variance is estimated by the derived equation (Chen et al. 2021)
+
+* K denotes the total number of historical active controlled studies used for NI margin conversion 
+* n.K is a vector of sample sizes of the K historical studies
+* data.K is the data set that contains all K historical studies where each observation has 
+* hr.margin: original NI margin measured in HR 
+* tau: up to which time point you want to evaluate the NI margin conversion
+
+``` r
+KMcMultiNIMarCovNoBoot <- function(data.K, K, n.K, hr.margin, tau) {
+  # weight function container
+  KM.C.weights.boot <- numeric(K)
+  # est container
+  KM.C.est.temp <- numeric(K)
+  # estimate RMST using KM-C method for each study
+  for (i in 1:K) {
+    KM.C.est.temp[i] <- KMcNIMarCov(data.frame(data.K[which(data.K$study==i),]), hr.margin, tau)
+  }
+  # estimate RMST est var for each study
+  weights.noboot <- numeric(K)
+  for (i in 1:K) {
+    weights.noboot[i] <- 1 / KMVarEst(data.frame(data.K[which(data.K$study==i),]), hr.margin, tau)
+  }
+  # weighted estimator of treatment effect
+  KM.C.delta.w.bar <- sum(KM.C.est.temp * weights.noboot) / sum(weights.noboot)
+  KM.C.pop.var.est <- max(0,(sum(weights.noboot*(KM.C.est.temp-KM.C.delta.w.bar)^2)-(K-1))/(sum(weights.noboot)-(sum(weights.noboot^2)/sum(weights.noboot))))                       
+  # the weight combining within and between study variations
+  KM.C.weights.noboot.star <- 1/(KM.C.pop.var.est+1/weights.noboot)
+  #######################
+  KM.C.est.RMSTD <- sum(KM.C.weights.noboot.star * KM.C.est.temp)/sum(KM.C.weights.noboot.star)
+  # print(KM.C.est.temp)
+  return(KM.C.est.RMSTD)
+}
+```
 
 
 
