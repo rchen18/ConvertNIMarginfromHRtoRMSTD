@@ -122,6 +122,9 @@ rngHCpwExp_cpsurvsim <- function(samp.size.hc, # sample size of the historical c
 This function requires the `survival` R package
 
 input arguments: 
+\begin{itemize}
+  \item control.data: the historical active control group individual patient data
+\end{itemize}
 control.data: the historical active control group individual patient data
 the dataset should have four variables with exact these names:
 (1) 'time': the observed event/censoring time
