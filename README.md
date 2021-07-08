@@ -122,17 +122,15 @@ rngHCpwExp_cpsurvsim <- function(samp.size.hc, # sample size of the historical c
 This function requires the `survival` R package
 
 input arguments: 
-\begin{itemize}
-  \item control.data: the historical active control group individual patient data
-\end{itemize}
-control.data: the historical active control group individual patient data
-the dataset should have four variables with exact these names:
-(1) 'time': the observed event/censoring time
-(2) 'status': the event status indicator; 1 means event, 0 means censoring
-(3) 'true.eve': the true event time, which might not be observed
-(4) 'true.cens': the true censoring time, which might not be observed
-hr.margin: the original NI margin measured in HR
-tau: up to which time point you want to convert the NI margin
+
+* control.data: the historical active control group individual patient data
+* the dataset should have four variables with exact these names:
+  1. 'time': the observed event/censoring time
+  2. 'status': the event status indicator; 1 means event, 0 means censoring
+  3. 'true.eve': the true event time, which might not be observed
+  4. 'true.cens': the true censoring time, which might not be observed
+* hr.margin: the original NI margin measured in HR
+* tau: up to which time point you want to convert the NI margin
 
 ``` r
 
@@ -177,14 +175,15 @@ KMcNIMarCov <- function(control.data, hr.margin, tau) {
 ## NI margin conversion function: individual study level assuming Weibull model
 
 input arguments: 
-control.data: the historical active control group individual patient data
-the dataset should have four variables with exact these names:
-(1) 'time': the observed event/censoring time
-(2) 'status': the event status indicator; 1 means event, 0 means censoring
-(3) 'true.eve': the true event time, which might not be observed
-(4) 'true.cens': the true censoring time, which might not be observed
-hr.margin: the original NI margin measured in HR
-tau: up to which time point you want to convert the NI margin
+
+* control.data: the historical active control group individual patient data
+* the dataset should have four variables with exact these names:
+  1. 'time': the observed event/censoring time
+  2. 'status': the event status indicator; 1 means event, 0 means censoring
+  3. 'true.eve': the true event time, which might not be observed
+  4. 'true.cens': the true censoring time, which might not be observed
+* hr.margin: the original NI margin measured in HR
+* tau: up to which time point you want to convert the NI margin
 
 ``` r
 weibullNIMarCov <- function(my.data, hr.margin, tau) {
