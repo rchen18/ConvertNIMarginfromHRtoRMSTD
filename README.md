@@ -365,7 +365,7 @@ KMcNIMarCov(samp.obs.weib, 1.5, 36)
 ###################################
 -1.002105
 ```
-The converted NI margin measured in RMSTD is approximately 1 month.
+The converted NI margin measured in RMSTD is approximately -1 month.
 
 Then generate a sample of 200 observaitons that follow from a two-change-points Piece-wise Exponential(theta_1=0.0025, r_1=1.3, r_2=0.7, t_1=18, t_2=36) distribution. The generated data are subject to a Type-I right censoring mechanism with a maximum follow-up time of 126 months. A random drop-out mechanism is applied that follows an exponential distribution with lambda=0.001.
 
@@ -395,7 +395,7 @@ KMcNIMarCov(samp.obs.pwe, 1.3, 60)
 #################################
 -1.440775
 ```
-The converted NI margin measured in RMSTD is approximately 1.4 month.
+The converted NI margin measured in RMSTD is approximately -1.4 month.
 
 ## Conversion using multiple studies
 
