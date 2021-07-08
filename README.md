@@ -331,5 +331,32 @@ KMcMultiNIMarCovNoBoot <- function(data.K, K, n.K, hr.margin, tau) {
 }
 ```
 
+# Conversion Examples
 
+## Conversion at individual study level
+
+First generate a sample of 200 observaitons that follow from a Weibull(shape=1.5, scale=log(110)) distribution. The generated data are subject to a Type-I right censoring mechanism with a maximum follow-up time of 60 months. A random drop-out mechanism is applied that follows an exponential distribution with lambda=0.001.
+
+``` r
+set.seed(123456)
+samp.obs <- rngHCWeibull(
+    200, # sample size of the historical control group
+    # follow.time.C.min, # minimum follow-up time for the historical control group 
+    60, # maximum follow-up time for the historical control group
+    1.5, # shape parameter for the survival time distribution  
+    log(110), # scale parameter for the survival time distribution
+    0.001, # censoring rate parameter for the historical control group
+    # recruit.period.hc, # recruit time for the historical control group
+    details=F # whether to display
+)
+head(samp.obs)
+#####################################
+  true.eve true.cens     time status
+1 1.743579        60 1.743579      1
+2 2.025839        60 2.025839      1
+3 4.505390        60 4.505390      1
+4 4.930340        60 4.930340      1
+5 4.756914        60 4.756914      1
+6 6.477632        60 6.477632      1
+```
 
