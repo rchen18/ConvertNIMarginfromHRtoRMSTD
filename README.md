@@ -373,13 +373,13 @@ Then generate a sample of 200 observaitons that follow from a two-change-points 
 
 ``` r
 set.seed(12345)
-samp.obs.exp <- rngHCpwExp_cpsurvsim(200, # sample size of the historical control group
+samp.obs.pwe <- rngHCpwExp_cpsurvsim(200, # sample size of the historical control group
                               126, # maximum follow-up time for the historical control group
                               c(0.0025,0.0025*1.3,0.0025*1.3*0.7), # a vector of rate parameters of the survival time distribution (exponential)
                               c(18,36), # a vector of change of time points values for the control group
                               0.001 # censoring rate parameter for the historical control group
 )
-head(samp.obs.exp)
+head(samp.obs.pwe)
 #############################
         time status   true.eve true.cens
 1 126.000000      0 126.000000 126.00000
@@ -390,7 +390,75 @@ head(samp.obs.exp)
 6   9.575256      1   9.575256  30.71664
 ```
 
+Then convert a HR NI margin of 1.3 at tau=60 months using the KM method.
 
+``` r
+KMcNIMarCov(samp.obs.pwe, 1.3, 60)
+#################################
+-1.440775
+```
+The converted NI margin measured in RMSTD is approximately 1.4 month.
+
+## Conversion using multiple studies
+
+``` r
+# create a sample data set
+
+log.rate.eve.mean <- 0.04
+re.var <- 0.5
+samp.log.rate.vec <- exp(rnorm(3, log.rate.eve.mean, re.var))
+hazard.delta.rates <- c(1.3,0.7)
+
+n.K <- c(550,750,1000)
+ set.seed(1234567)
+ data_hc_ij_1 <- rngHCpwExp_cpsurvsim(n.K[1], # sample size of the historical control group
+                                     follow.t.max.hc=126, # maximum follow-up time for the historical control group
+                                     rate.hc=c(samp.log.rate.vec[1],samp.log.rate.vec[1]*hazard.delta.rates[1],samp.log.rate.vec[1]*hazard.delta.rates[1]*hazard.delta.rates[2]), # shape parameter for the survival time distribution
+                                     change.pts.hc=c(30,54), # a vector of change of time points values for the control group
+                                    lambda.cens.hc=0.01 # censoring rate parameter for the historical control group
+)
+
+data_hc_ij_1 <- cbind(data_hc_ij_1,rep(1,nrow(data_hc_ij_1)))
+colnames(data_hc_ij_1)[5] <- "study"
+
+data_hc_ij_2 <- rngHCpwExp_cpsurvsim(n.K[2], # sample size of the historical control group
+                                     follow.t.max.hc=126, # maximum follow-up time for the historical control group
+                                    rate.hc=c(samp.log.rate.vec[2],samp.log.rate.vec[2]*hazard.delta.rates[1],samp.log.rate.vec[2]*hazard.delta.rates[1]*hazard.delta.rates[2]), # shape parameter for the survival time distribution
+                                      change.pts.hc=c(30,54), # a vector of change of time points values for the control group
+                                      lambda.cens.hc=0.01 # censoring rate parameter for the historical control group
+ )
+
+data_hc_ij_2 <- cbind(data_hc_ij_2,rep(2,nrow(data_hc_ij_2)))
+colnames(data_hc_ij_2)[5] <- "study"
+
+data_hc_ij_3 <- rngHCpwExp_cpsurvsim(n.K[3], # sample size of the historical control group
+                                   follow.t.max.hc=126, # maximum follow-up time for the historical control group
+                                    rate.hc=c(samp.log.rate.vec[3],samp.log.rate.vec[3]*hazard.delta.rates[1],samp.log.rate.vec[3]*hazard.delta.rates[1]*hazard.delta.rates[2]), # shape parameter for the survival time distribution
+                                      change.pts.hc=c(30,54), # a vector of change of time points values for the control group
+                                      lambda.cens.hc=0.01 # censoring rate parameter for the historical control group
+ )
+
+data_hc_ij_3 <- cbind(data_hc_ij_3,rep(3,nrow(data_hc_ij_3)))
+colnames(data_hc_ij_3)[5] <- "study"
+
+# combine data
+data.K <- rbind(data_hc_ij_1,data_hc_ij_2,data_hc_ij_3)
+K = 3; tau = 60; hr.margin = 1.2
+
+# run the conversions
+
+hr.margin <- 1.1; tau <- 60; K <- 3; boot.size = 100
+KMcMultiNIMarCovNoBoot(data.K, K, n.K, 1.4, 120)
+
+#######################
+[1] -0.2459887
+
+# test function
+hr.margin <- 1.1; tau <- 60; K <- 3; boot.size = 100
+KMcMultiNIMarCovBoot(data.K, K, n.K, 1.4, 120, boot.size)
+#######################
+[1] -0.2457093
+```
 
 
 
