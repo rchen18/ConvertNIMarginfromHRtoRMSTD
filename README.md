@@ -339,7 +339,7 @@ First generate a sample of 200 observaitons that follow from a Weibull(shape=1.5
 
 ``` r
 set.seed(123456)
-samp.obs <- rngHCWeibull(
+samp.obs.weib <- rngHCWeibull(
     200, # sample size of the historical control group
     # follow.time.C.min, # minimum follow-up time for the historical control group 
     60, # maximum follow-up time for the historical control group
@@ -349,7 +349,7 @@ samp.obs <- rngHCWeibull(
     # recruit.period.hc, # recruit time for the historical control group
     details=F # whether to display
 )
-head(samp.obs)
+head(samp.obs.weib)
 #####################################
   true.eve true.cens     time status
 1 1.743579        60 1.743579      1
@@ -359,4 +359,15 @@ head(samp.obs)
 5 4.756914        60 4.756914      1
 6 6.477632        60 6.477632      1
 ```
+
+Then convert a HR NI margin of 1.5 at tau=36 months using the KM method.
+
+``` r
+KMcNIMarCov(samp.obs.weib, 1.5, 36)
+###################################
+-1.002105
+```
+The converted NI margin measured in RMSTD is approximately 1 month.
+
+
 
