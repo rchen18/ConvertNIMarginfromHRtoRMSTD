@@ -8,7 +8,7 @@ This example file demonstrate the utilities of our (Chen et al. 2021) proposed N
 
 First load the data generation functions. Two data generation models are included: (a) Weibull distribution (b) Piece-wise exponential distribution. In order to run the funtions, one need to install the R package 'cpsurvsim'.
 
-## Weibull data generation
+## Weibull data generation function
 
 ``` r
 
@@ -94,7 +94,7 @@ rngHCWeibull <- function(
 
 ```
 
-## Piece-wise Exponential data generation
+## Piece-wise Exponential data generation function
 
 
 ``` r
@@ -116,6 +116,92 @@ rngHCpwExp_cpsurvsim <- function(samp.size.hc, # sample size of the historical c
   return(res.data)
 }
 ```
+
+## NI margin conversion function: individual study level with Kaplan-Meier (KM) estimators
+
+This function requires the `survival` R package
+
+input arguments: 
+control.data: the historical active control group individual patient data
+the dataset should have four variables with exact these names:
+(1) 'time': the observed event/censoring time
+(2) 'status': the event status indicator; 1 means event, 0 means censoring
+(3) 'true.eve': the true event time, which might not be observed
+(4) 'true.cens': the true censoring time, which might not be observed
+hr.margin: the original NI margin measured in HR
+tau: up to which time point you want to convert the NI margin
+
+``` r
+
+KMcNIMarCov <- function(control.data, hr.margin, tau) {
+  # load the necessary dependency library
+  require(survival)
+  # fit a KM curve (this step is for obtaining survival data info)
+  KM.fit1 <- survfit(Surv(time, status) ~ 1, data=control.data)
+  # survival info data frame
+  KM.fit1.data <- data.frame(S.i = KM.fit1$surv,  # KM est
+                             t.i = KM.fit1$time # extract event time info
+  )
+  ###############################
+  # step 1: time length periods #
+  ###############################
+  # calculate time period length between each recorded time points
+  time.len.cont <- numeric(nrow(KM.fit1.data))
+  # first time period length is from t=0 to the first event time
+  time.len.cont[1] <- KM.fit1.data$t.i[1]
+  for (i in 2:length(KM.fit1.data$t.i)) {
+    time.len.cont[i] <- KM.fit1.data$t.i[i]-KM.fit1.data$t.i[i-1]
+  }
+  KM.fit1.data <- cbind(KM.fit1.data, time.len.cont)
+  #############################################
+  # step 2: determine the converted NI Margin #
+  #############################################
+  # the following step is extremely important
+  # we only need survival data up until the time tau (RMST is a function of time)
+  # notice that the number of censoring at the end of the trial would be huge if
+  # we don't exclude tau from our analysis
+  KM.fit1.data <- KM.fit1.data[1:max(which(KM.fit1.data$t.i<=tau)),]
+  # estimated RMST for the NIP-HC group
+  mu.NIP.HC <- sum((KM.fit1.data$S.i)^hr.margin * KM.fit1.data$time.len.cont)
+  # estimated RMST for the HC group
+  mu.HC <- sum(KM.fit1.data$S.i* KM.fit1.data$time.len.cont)
+  # the converted margin
+  NI.margin.KM.c <- mu.NIP.HC - mu.HC
+  return(NI.margin.KM.c)
+}
+```
+
+## NI margin conversion function: individual study level assuming Weibull model
+
+input arguments: 
+control.data: the historical active control group individual patient data
+the dataset should have four variables with exact these names:
+(1) 'time': the observed event/censoring time
+(2) 'status': the event status indicator; 1 means event, 0 means censoring
+(3) 'true.eve': the true event time, which might not be observed
+(4) 'true.cens': the true censoring time, which might not be observed
+hr.margin: the original NI margin measured in HR
+tau: up to which time point you want to convert the NI margin
+
+``` r
+weibullNIMarCov <- function(my.data, hr.margin, tau) {
+  require(survival)
+  # to exclude observations of time 0 (for simulated data)
+  my.data <- my.data[which(my.data>0),]
+  surv.fit.weibull <- survreg(Surv(my.data$time, my.data$status) ~ 1, dist='weibull')
+  # survreg's scale = 1/(rweibull shape)
+  est.shape.sim <- 1 / surv.fit.weibull$scale
+  # survreg's intercept = log(rweibull scale)
+  est.lambda.sim <- exp(as.numeric(surv.fit.weibull$coefficients))
+  RMST.hc.sim <- integrate(function(x) exp(-(x/est.lambda.sim)^est.shape.sim), 0, tau)
+  RMST.nip.hc.sim <- integrate(function(x) exp(-hr.margin*(x/est.lambda.sim)^est.shape.sim), 0, tau)
+  RMST.d.sim <- RMST.nip.hc.sim$value-RMST.hc.sim$value
+  return(RMST.d.sim)
+}
+```
+
+
+
 
 
 
