@@ -1,6 +1,6 @@
 # Introduction
 
-This example file demonstrate the utilities of our (Chen et al. 2021) proposed NI margin conversion methods when applied to both individual study and multiple studies. The example codes perform data generation and NI margin conversions from a HR measure to a RMSTD measure.
+This example file demonstrate the utilities of our (Chen et al. 2022) proposed NI margin conversion methods when applied to both individual study and multiple studies. The example codes perform data generation and NI margin conversions from a HR measure to a RMSTD measure.
 
 # Load Required Functions
 
