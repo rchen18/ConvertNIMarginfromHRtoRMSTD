@@ -444,7 +444,6 @@ data.K <- rbind(data_hc_ij_1,data_hc_ij_2,data_hc_ij_3)
 K = 3; tau = 60; hr.margin = 1.2
 
 # run the conversions
-
 hr.margin <- 1.1; tau <- 60; K <- 3; boot.size = 100
 KMcMultiNIMarCovNoBoot(data.K, K, n.K, 1.4, 120)
 
