@@ -294,7 +294,7 @@ KMcMultiNIMarCovBoot <- function(data.K, K, n.K, hr.margin, tau, boot.size) {
 
 ```
 
-## NI margin conversion function with KM estimators for multiple studies where the variance is estimated by the derived equation (Chen et al. 2021)
+## NI margin conversion function with KM estimators for multiple studies where the variance is estimated by the derived equation (Chen et al. 2022)
 
 * K denotes the total number of historical active controlled studies used for NI margin conversion 
 * n.K is a vector of sample sizes of the K historical studies
